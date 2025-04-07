@@ -173,7 +173,6 @@ elif page == "Query Recommendations":
                     st.warning("No recommendations found for this query.")
                 else:
                     # Process the JSON to add test_types to each recommendation
-                    # Process the JSON to add test_types to each recommendation
                     if "metadata" in data and "test_types" in data["metadata"]:
                         for rec in data["recommendations"]:
                             # Replace empty test_type_categories with test_types from metadata
@@ -181,11 +180,19 @@ elif page == "Query Recommendations":
                                 # Update both fields for consistency
                                 rec["test_types"] = data["metadata"]["test_types"]
                                 rec["test_type_categories"] = data["metadata"]["test_types"]
-                                
+                            
+                            # Remove the score field if it exists
                             if "score" in rec:
                                 del rec["score"]
+                            
+                            # Clean up explanation field - remove "**Explanation:**" prefix
+                            if "explanation" in rec and isinstance(rec["explanation"], str):
+                                rec["explanation"] = rec["explanation"].replace("**Explanation:** ", "")
+                                rec["explanation"] = rec["explanation"].replace("**Explanation:**", "")
+                        
                         # After all recommendations are processed, update the overall data object
                         data["recommendations"] = data["recommendations"]
+                        
                             
                     st.success(f"Found {len(data['recommendations'])} recommendations in {data.get('processing_time', 0):.2f} seconds.")
                     
