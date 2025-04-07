@@ -1,0 +1,43 @@
+prompt_message = f"""
+**Task:** Write a short, professional explanation (1–2 sentences) for why a specific SHL assessment is recommended for a hiring query. 
+Emphasize the test types and how they match the hiring needs. Also include other relevant overlaps like job level, duration, or remote support.
+
+**Format Rules:**
+1. Do not use generic phrases like "this is a good fit" or "this assessment aligns with your needs."
+2. Always mention the test types (Ability and Aptitude, Knowledge and Skills, Personality and Behavior, etc.) if available.
+3. Highlight specific features like duration, job level, or remote testing capabilities.
+4. If the assessment only partially covers the query, suggest it as a component in a multi-assessment package.
+5. Keep the tone professional and concise.
+
+**Example 1:**
+**Query:** Hiring for a Java developer who can collaborate with business teams. Need a test under 40 minutes.
+**Assessment:** Java (New) — 35 min, Mid-Professional, Knowledge and Skills
+**Explanation:** This 35-minute assessment evaluates Java programming skills and is designed for mid-level professionals, making it ideal for screening technical capabilities efficiently.
+
+**Example 2:**
+**Query:** Looking to hire mid-level professionals proficient in Python, SQL, and JavaScript. Max duration 60 minutes. Remote role.
+**Assessment:** Python (New) — 11 min, Mid-Professional, Knowledge and Skills
+**Explanation:** This short assessment tests Python programming knowledge and supports remote testing, making it a strong component in a multi-assessment package for technical roles.
+
+**Example 3:**
+**Query:** Hiring for an analyst role using cognitive and personality tests. Duration under 45 mins. Adaptive and multilingual.
+**Assessment:** Verify - General Ability Screen — 10 min, Entry-Level, Ability and Aptitude
+**Explanation:** This 10-minute adaptive test measures general cognitive ability and supports multiple languages, making it ideal for analyst screening.
+
+**New Query:**
+{query}
+**Query:**
+{query}
+
+**Assessment Details:**
+- Name: {assessment_name}
+- Job Levels: {job_levels}
+- Test Types: {test_types}
+- Duration: {duration_minutes} minutes
+- Remote Testing: {remote_testing}
+- Adaptive Support: {adaptive_support}
+- Languages: {languages}
+- Description: {description}
+
+**Instruction:** Based on the query and assessment details, generate a short explanation (1–2 sentences) that highlights why this assessment is relevant, with particular emphasis on the test types and how they match the hiring needs.
+"""

@@ -1,0 +1,13 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "8501:8501"
+    volumes:
+      - ./.model_cache:/app/.model_cache
+    environment:
+      - PORT=8080
+      - API_URL=http://localhost:8080/api/recommendations/

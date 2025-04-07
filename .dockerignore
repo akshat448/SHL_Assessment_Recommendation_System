@@ -1,0 +1,45 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environments
+.venv/
+
+# Ignore model cache and large data files
+*.h5
+*.pkl
+*.pt
+*.onnx
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# Ignore Git and version control files
+.git/
+.gitignore
+
+# Ignore Docker-related files
+Dockerfile
+docker-compose.yml
+
+# Ignore other unnecessary files
+node_modules/
+*.zip
+*.tar.gz
+*.rar
+
+data
+data_*
+uv.lock
+*.egg-info/
+*.egg
+*.whl
+*.DS_Store
+*.ipynb_checkpoints
+*.coverage
+*.cover
+*.mypy_cache/
+*.pytest_cache/
