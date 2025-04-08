@@ -151,66 +151,107 @@ Both approaches ensure that the recommendations are tailored to the user's speci
    - `Number of final recommendations to show (top_n)`
    - Enable or disable the reranker
 4. Click "Get Recommendations" to see results.
-### API Endpoints
 
-The backend provides an API for programmatic access:
+## API Endpoints
 
-#### **POST `/api/recommendations/`**
-- **Parameters**:
-  - `query`: Natural language query or URL to a job description
-  - `top_k`: Number of candidates to retrieve
-  - `top_n`: Number of final recommendations
-  - `use_reranker`: Whether to use the reranker
-  - `use_llm_explanations`: Whether to use LLM for explanations
-- **Response**:
-  - A JSON object containing the recommendations, explanations, and metadata.
-    ```json
-    {
-      "recommendations": [
-        {
-          "assessment": "Python Developer Test",
-          "explanation": "This test evaluates Python and SQL skills required for the role.",
-          "metadata": {
-            "skills": ["Python", "SQL"],
-            "duration_minutes": 30
-          }
-        },
-        {
-          "assessment": "Software Engineering Fundamentals Test",
-          "explanation": "This test assesses general software engineering knowledge.",
-          "metadata": {
-            "skills": ["Software Engineering"],
-            "duration_minutes": 45
-          }
-        }
-      ]
-    }
-    ```
-#### **GET `/api/recommendations/query`**
-- **Description**: Get assessment recommendations using GET parameters. This endpoint is useful for quick testing or direct browser access.
-- **Parameters**:
-  - `query` (string): Natural language query describing the assessment needs.
-  - `top_k` (integer, default: 10): Maximum number of candidates to retrieve.
-  - `top_n` (integer, default: 5): Maximum number of final recommendations to return.
-  - `use_reranker` (boolean, default: True): Whether to use the reranker.
-  - `use_llm_explanations` (boolean, default: True): Whether to generate explanations using LLM.
-- **Response**:
-  - A JSON object containing the recommendations, explanations, and metadata.
+The backend provides several API endpoints for programmatic access:
+
+### **POST `/recommend`**
+- **Description**: Get basic assessment recommendations without explanations
+- **Parameters**: 
+  - `query` (string): Natural language query describing the assessment needs
+- **Response Format**:
   ```json
   {
-    "recommendations": [
+    "recommended_assessments": [
       {
-        "assessment": "Data Analysis Test",
-        "explanation": "This test evaluates data analysis skills required for the role.",
-        "metadata": {
-          "skills": ["Data Analysis", "SQL"],
-          "duration_minutes": 30
-        }
+        "url": "Valid URL in string",
+        "adaptive_support": "Yes/No",
+        "description": "Description in string",
+        "duration": 60,
+        "remote_support": "Yes/No",
+        "test_type": ["List of string"]
+      }
+    ]
+  }
+    ```
+### **GET `/recommend`**
+- **Description**: Get basic assessment recommendations without explanations
+- **Parameters**: 
+  - `query` (string): Natural language query describing the assessment needs
+- **Response Format**:
+  ```json
+  {
+    "recommended_assessments": [
+      {
+        "url": "Valid URL in string",
+        "adaptive_support": "Yes/No",
+        "description": "Description in string",
+        "duration": 60,
+        "remote_support": "Yes/No",
+        "test_type": ["List of string"]
       }
     ]
   }
   ```
+### **POST `/dashboard`**
 
+- **Description**: Enhanced endpoint specifically designed for the dashboard interface.
+- **Parameters**:
+  - `query` (string): Natural language query or URL to a job description.
+  - `top_k` (integer, default: 25): Maximum number of candidates to retrieve.
+  - `top_n` (integer, default: 10): Maximum number of final recommendations to return.
+  - `use_reranker` (boolean, default: true): Whether to use the reranker for improved results.
+  - `use_llm_explanations` (boolean, default: false): Whether to include explanations for recommendations.
+- **Response Format**:
+```json
+{
+  "recommended_assessments": [
+    {
+      "url": "Valid URL in string",
+      "adaptive_support": "Yes/No",
+      "description": "Description in string",
+      "duration": 60,
+      "remote_support": "Yes/No",
+      "test_type": ["List of string"],
+      "explanation": "Optional explanation when use_llm_explanations=true"
+    }
+  ]
+}
+```
+
+### **GET `/health`**
+
+- **Description**: Simple health check endpoint to verify if the service is running properly.
+- **Response Format**:
+```json
+{
+  "status": "healthy"
+}
+```
+
+
+
+## Streamlit Frontend
+
+The frontend provides a user-friendly interface to interact with the API:
+
+### Assessment Recommendations Page
+- Enter a job description or hiring query or URL to JD
+- Configure parameters:
+  - Number of candidates to retrieve (`top_k`)
+  - Number of final recommendations (`top_n`) 
+  - Toggle reranker usage for better results (may increase processing time)
+  - Toggle LLM explanations to get reasoning for each recommendation
+- View results in a formatted table with:
+  - Clickable assessment names linked to their respective URLs
+  - Duration, test types, and other assessment metadata
+  - Explanation column (when LLM explanations are enabled)
+- Download results as CSV or JSON
+
+### Health Check Page
+- Verify the API's operational status
+- View complete health check response
 
 ## Configuration
 

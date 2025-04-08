@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 import time
 import os
 import sys
@@ -36,11 +36,20 @@ async def add_process_time_header(request: Request, call_next):
     response.headers["X-Process-Time"] = str(process_time)
     return response
 
-# Models
+# Request Models
 class RecommendRequest(BaseModel):
     query: str
 
-class Assessment(BaseModel):
+class DashboardRequest(BaseModel):
+    query: str
+    top_k: int = 25
+    top_n: int = 10
+    use_reranker: bool = True
+    use_llm_explanations: bool = False
+
+# Response Models
+class RecommendAssessment(BaseModel):
+    """Basic assessment model without explanations for /recommend endpoints"""
     url: str
     adaptive_support: str
     description: str
@@ -48,17 +57,32 @@ class Assessment(BaseModel):
     remote_support: str
     test_type: List[str]
 
+class DashboardAssessment(BaseModel):
+    """Enhanced assessment model with explanations for /dashboard endpoint"""
+    url: str
+    adaptive_support: str
+    description: str
+    duration: int
+    remote_support: str
+    test_type: List[str]
+    explanation: Optional[str] = None
+
 class RecommendResponse(BaseModel):
-    recommended_assessments: List[Assessment]
+    """Response model for /recommend endpoints"""
+    recommended_assessments: List[RecommendAssessment]
+
+class DashboardResponse(BaseModel):
+    """Response model for /dashboard endpoint"""
+    recommended_assessments: List[DashboardAssessment]
 
 # Initialize agent manager (lazy loading)
 _agent_manager = None
-def get_agent_manager():
+def get_agent_manager(use_reranker: bool = True, use_llm_explanations: bool = False):
     global _agent_manager
     if _agent_manager is None:
         _agent_manager = AgentManager(
-            use_reranker=True,
-            use_llm_explanations=False  # Don't use LLM explanations as per requirement
+            use_reranker=use_reranker,
+            use_llm_explanations=use_llm_explanations
         )
     return _agent_manager
 
@@ -79,7 +103,7 @@ async def recommend_assessments_post(request: RecommendRequest):
         results = agent_manager.process_query(
             query=request.query,
             top_k=25,  # Default values
-            top_n_from_k=5,
+            top_n_from_k=10,
             format_as_text=False
         )
         
@@ -102,14 +126,16 @@ async def recommend_assessments_post(request: RecommendRequest):
                 assessment = {
                     "url": rec.get("assessment_url", ""),
                     "adaptive_support": rec.get("adaptive_support", "No"),
-                    "description": rec.get("description", ""),  # Use original description, not explanation
+                    "description": rec.get("description", "").replace("\n", " "),
                     "duration": duration,
                     "remote_support": rec.get("remote_testing", "No"),
                     "test_type": test_types
                 }
                 recommended_assessments.append(assessment)
         
-        return {"recommended_assessments": recommended_assessments}
+        return {
+            "recommended_assessments": recommended_assessments
+        }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
@@ -119,7 +145,7 @@ async def recommend_assessments_post(request: RecommendRequest):
 async def recommend_assessments_get(
     query: str,
     top_k: Optional[int] = 25,
-    top_n: Optional[int] = 5
+    top_n: Optional[int] = 10
 ):
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
@@ -153,13 +179,76 @@ async def recommend_assessments_get(
                 assessment = {
                     "url": rec.get("assessment_url", ""),
                     "adaptive_support": rec.get("adaptive_support", "No"),
-                    "description": rec.get("description", ""),  # Use original description, not explanation
+                    "description": rec.get("description", "").replace("\n", " "),
                     "duration": duration,
                     "remote_support": rec.get("remote_testing", "No"),
                     "test_type": test_types
                 }
+
                 recommended_assessments.append(assessment)
         
+        return {
+            "recommended_assessments": recommended_assessments
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+
+
+# Update the dashboard endpoint with the new response model
+@app.post("/dashboard", response_model=DashboardResponse)
+async def dashboard_recommendations(request: DashboardRequest):
+    if not request.query:
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
+    
+    try:
+        # Get agent manager with specified parameters
+        agent_manager = get_agent_manager(
+            use_reranker=request.use_reranker,
+            use_llm_explanations=request.use_llm_explanations
+        )
+        
+        # Process the query
+        results = agent_manager.process_query(
+            query=request.query,
+            top_k=request.top_k,
+            top_n_from_k=request.top_n,
+            format_as_text=False
+        )
+        
+        # Format the response
+        recommended_assessments = []
+        
+        if "recommendations" in results:
+            for rec in results["recommendations"]:
+                # Get test types from test_type_categories or test_types
+                test_types = rec.get("test_type_categories", []) or rec.get("test_types", [])
+                
+                # Ensure duration is an integer
+                duration = 0
+                if "duration_minutes" in rec and rec["duration_minutes"] is not None:
+                    try:
+                        duration = int(rec["duration_minutes"])
+                    except (ValueError, TypeError):
+                        duration = 0
+                
+                # Create assessment object with required fields
+                assessment = {
+                    "url": rec.get("assessment_url", ""),
+                    "adaptive_support": rec.get("adaptive_support", "No"),
+                    "description": rec.get("description", "").replace("\n", " "),
+                    "duration": duration,
+                    "remote_support": rec.get("remote_testing", "No"),
+                    "test_type": test_types
+                }
+                
+                # Only include explanation if LLM explanations are enabled
+                if request.use_llm_explanations and "explanation" in rec and rec["explanation"]:
+                    assessment["explanation"] = rec["explanation"].replace("**Explanation:** ", "").replace("\n", " ")
+                
+                recommended_assessments.append(assessment)
+        
+        # Return the assessments with embedded explanations
         return {"recommended_assessments": recommended_assessments}
         
     except Exception as e:
@@ -167,4 +256,4 @@ async def recommend_assessments_get(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("api.main:app", host="0.0.0.0", port=8080, reload=True)
