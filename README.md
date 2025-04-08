@@ -10,7 +10,9 @@ A comprehensive system for recommending SHL assessments based on natural languag
 - [Technology Stack](#technology-stack)
 - [Features](#features)
 - [Setup and Installation](#setup-and-installation)
-- [Usage](#usage)
+- [API Endpoints](#api-endpoints)
+- [Testing with cURL](#testing-with-curl)
+- [Streamlit Frontend](#streamlit-frontend)
 - [Configuration](#configuration)
 
 ## Overview
@@ -137,20 +139,6 @@ Both approaches ensure that the recommendations are tailored to the user's speci
 
 
 ---
-
-### Usage
-
-### Streamlit Interface
-
-1. Navigate to `http://localhost:8501` in your browser.
-2. Enter your query in the text area. You can:
-   - Provide a **natural language query** (e.g., "I am hiring for a Java developer who can collaborate with business teams. Need a test under 40 minutes.")
-   - Provide a **URL to a job description**. The system will extract relevant context from the URL.
-3. Adjust parameters such as:
-   - `Number of candidates to retrieve (top_k)`
-   - `Number of final recommendations to show (top_n)`
-   - Enable or disable the reranker
-4. Click "Get Recommendations" to see results.
 
 ## API Endpoints
 
