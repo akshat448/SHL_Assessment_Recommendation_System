@@ -230,6 +230,70 @@ The backend provides several API endpoints for programmatic access:
 }
 ```
 
+## Testing with cURL
+
+You can test the API endpoints directly using cURL commands:
+
+### Basic Assessment Recommendations
+
+This example gets basic assessment recommendations for a Java developer position without explanations:
+
+```bash
+curl -X POST "http://34.31.112.198:8080/recommend" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "I am hiring for a Java developer who can collaborate with business teams. Need a test under 40 minutes."
+  }'
+```
+### Expected Response:
+```json
+{
+  "recommended_assessments": [
+    {
+      "url": "https://www.shl.com/shldirect/en/assessment-advice/example-questions/java-test/",
+      "adaptive_support": "No",
+      "description": "The SHL Java Test measures your programming skills in Java...",
+      "duration": 30,
+      "remote_support": "Yes",
+      "test_type": ["Programming Skills", "Technical"]
+    },
+    ...
+  ]
+}
+```
+
+### Dashboard with LLM Explanations
+
+This example uses the dashboard endpoint to get recommendations with explanations for a data scientist role:
+
+```bash
+curl -X POST "http://34.31.112.198:8080/dashboard" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Looking for a data scientist with Python, machine learning, and statistics background. Need both technical and problem-solving assessments.",
+    "top_k": 20,
+    "top_n": 8,
+    "use_reranker": true,
+    "use_llm_explanations": true
+  }'
+```
+### Expected response includes explanations for why each assessment was recommended:
+```json
+{
+  "recommended_assessments": [
+    {
+      "url": "https://www.shl.com/shldirect/en/assessment-advice/example-questions/python-test/",
+      "adaptive_support": "No", 
+      "description": "The SHL Python Test evaluates programming skills in Python...",
+      "duration": 45,
+      "remote_support": "Yes",
+      "test_type": ["Programming Skills", "Technical"],
+      "explanation": "This assessment is recommended because it directly tests Python programming skills which are required for a data scientist. The test focuses on technical coding abilities that match the requirements in your query."
+    },
+    ...
+  ]
+}
+```
 
 
 ## Streamlit Frontend
@@ -275,3 +339,4 @@ You can configure agent behavior in `agents/config.py`:
 ### Docker Configuration
 
 Modify `docker-compose.yml` to adjust container settings, such as ports and resource limits.
+
